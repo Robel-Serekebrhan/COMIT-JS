@@ -16,6 +16,8 @@ are: */
 /* 1, numbers; both intigers and floating point numbers
 eg.
 */
+// 7, use objects when you need to store data as key value pairs:
+// 8, use arrays to store ordered list of items
 let x = 1;
 let y = 1.0;
 //let x = 2;
@@ -23,10 +25,12 @@ console.log(x);
 
 //decraring a function that takes two arguments
 
-function takesInput(name, favoriteColor) {
-  console.log("Mynameis '${name} and my favorite color is: '${favoriteColor}");
+function takesInputs(username, favoriteColor) {
+  console.log(
+    "Mynameis:" + username + "  " + "and my fav colour is:" + favoriteColor
+  );
 }
-//const takesInput = funtion(name, favoriteColor);
+const username1 = prompt("enter the name");
+const userfavoriteColor1 = prompt("enter the favorite color");
 
-//console.log(takesInput);
-takesInput("robel", "blue");
+takesInputs(username1, userfavoriteColor1);
