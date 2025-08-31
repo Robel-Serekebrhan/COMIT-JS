@@ -1,0 +1,149 @@
+:root {
+  --bg: #0b0d12;
+  --panel: #151923;
+  --text: #e9eef7;
+  --muted: #94a3b8;
+  --brand: #3b82f6;
+  --ok: #10b981;
+  --warn: #f59e0b;
+  --danger: #ef4444;
+}
+
+* {
+  box-sizing: border-box;
+}
+html,
+body,
+#root {
+  height: 100%;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial,
+    sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--brand);
+  color: white;
+  border: 0;
+  padding: 0.6rem 1rem;
+  border-radius: 0.75rem;
+  cursor: pointer;
+}
+.btn--ghost {
+  background: transparent;
+  border: 1px solid #334155;
+}
+.card {
+  background: var(--panel);
+  border: 1px solid #1f2633;
+  border-radius: 1rem;
+  padding: 1rem;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+}
+.grid {
+  display: grid;
+  gap: 1rem;
+}
+.grid--3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+@media (max-width: 900px) {
+  .grid--3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.muted {
+  color: var(--muted);
+}
+input,
+select,
+textarea {
+  width: 100%;
+  padding: 0.6rem 0.7rem;
+  border-radius: 0.6rem;
+  border: 1px solid #334155;
+  background: #0f1420;
+  color: var(--text);
+}
+label {
+  display: block;
+  font-size: 0.9rem;
+  margin: 0.4rem 0;
+  color: var(--muted);
+}
+form .row {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: 1fr 1fr;
+}
+@media (max-width: 900px) {
+  form .row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.6rem;
+  font-size: 0.78rem;
+  border: 1px solid #334155;
+  color: var(--text);
+}
+.badge--pending {
+  background: #0b1220;
+  border-color: #334155;
+}
+.badge--confirmed {
+  background: #0e1b12;
+  border-color: #1f7a45;
+}
+.badge--declined {
+  background: #1a1212;
+  border-color: #7a1f1f;
+}
+.badge--cancelled {
+  background: #18181a;
+  border-color: #3f3f46;
+}
+.badge--completed {
+  background: #0e171f;
+  border-color: #1e40af;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.table th,
+.table td {
+  padding: 0.6rem;
+  border-top: 1px solid #1f2633;
+  text-align: left;
+}
+.table th {
+  color: var(--muted);
+  font-weight: 600;
+}
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}

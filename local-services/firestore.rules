@@ -1,0 +1,67 @@
+// firestore.rules
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Bookings
+match /bookings/{bookingId} {
+  allow read: if isSignedIn() && (
+      resource.data.userUid == uid() ||
+      resource.data.providerUid == uid() ||
+      isAdmin()
+  );
+
+  // create: the caller must be the customer
+  allow create: if isSignedIn() && request.resource.data.userUid == uid();
+
+  // update: user can cancel their own pending/confirmed bookings; provider can confirm/decline/complete their own; admin can do all
+  allow update: if isSignedIn() && (
+    // user cancelling their own
+    (resource.data.userUid == uid() && request.resource.data.status in ["cancelled"]) ||
+    // provider managing theirs
+    ((resource.data.providerUid == uid() || isAdmin()) &&
+      request.resource.data.status in ["confirmed", "declined", "completed", "cancelled"]) ||
+    isAdmin()
+  );
+
+  // (Optionally) delete for admin only
+  allow delete: if isAdmin();
+}
+
+
+    function isSignedIn() { return request.auth != null; }
+    function uid() { return request.auth.uid; }
+    function isAdmin() {
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(uid())).data.role == "admin";
+    }
+    function isProvider() {
+      return isSignedIn() && (
+        get(/databases/$(database)/documents/users/$(uid())).data.role in ["provider", "admin"]
+      );
+    }
+
+    // Users
+    match /users/{userId} {
+      allow read: if isSignedIn() && (userId == uid() || isAdmin());
+      // user can update own profile (but NOT their role)
+      allow update: if isSignedIn() && userId == uid() && !( "role" in request.resource.data.diff().changedKeys() );
+      // only admin can set roles
+      allow write: if isAdmin();
+      allow create: if isSignedIn() && userId == uid();
+    }
+
+    // Services
+    match /services/{serviceId} {
+      allow read: if true; // public browse
+      allow create: if isProvider();
+      allow update, delete: if isProvider() && resource.data.ownerUid == uid() || isAdmin();
+    }
+
+    // Reviews (subcollection)
+    match /services/{serviceId}/reviews/{reviewId} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      // (Optionally) allow users to edit only their own review
+      allow update, delete: if isSignedIn() && resource.data.userUid == uid() || isAdmin();
+    }
+  }
+}
