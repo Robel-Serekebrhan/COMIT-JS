@@ -9,6 +9,10 @@ export type UserDoc = {
   email?: string;
   phone?: string;
   city?: string;
+  // If the user is a provider, list of categories they offer
+  providerServices?: string[];
+  // Provider availability flag for matching
+  available?: boolean;
   createdAt: Timestamp;
 };
 
@@ -54,6 +58,16 @@ export type BookingDoc = {
   providerUid: string; // owner of the service
   userUid: string; // customer
   userName?: string;
+  // When a booking is broadcast to multiple providers, all related
+  // booking docs share this requestGroupId. Only one will be confirmed.
+  requestGroupId?: string;
+  // For the confirmed booking, snapshot of the provider profile
+  acceptedProvider?: {
+    uid: string;
+    displayName?: string;
+    email?: string;
+    city?: string;
+  };
 
   startTime: Timestamp; // UTC start (hour granularity is fine)
   endTime: Timestamp; // start + duration
@@ -67,4 +81,20 @@ export type BookingDoc = {
 
   createdAt: Timestamp;
   updatedAt: Timestamp;
+};
+
+export type MessageDoc = {
+  id?: string;
+  senderUid: string;
+  senderName?: string;
+  text?: string;
+  attachments?: string[]; // storage URLs
+  createdAt: Timestamp;
+};
+
+export type ThreadMetaDoc = {
+  participants: string[]; // [userUid, providerUid]
+  lastMessageText?: string;
+  lastMessageAt?: Timestamp;
+  lastReadAt?: Record<string, Timestamp>; // { [uid]: Timestamp }
 };

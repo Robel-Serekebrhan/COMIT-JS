@@ -2,6 +2,10 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../../app/providers/AuthProvider";
 import { updateBookingStatus, watchProviderBookings } from "./api";
 import type { BookingDoc } from "../../types/models";
+import { Link } from "react-router-dom";
+import { UnreadPill } from "../messages/UnreadPill";
+import { db } from "../../lib/firebase/firebase";
+import { doc, onSnapshot, updateDoc } from "firebase/firestore";
 
 function StatusBadge({ s }: { s: BookingDoc["status"] }) {
   const cls = {
@@ -17,6 +21,24 @@ function StatusBadge({ s }: { s: BookingDoc["status"] }) {
 export function ProviderBookingsPage() {
   const { user, role } = useAuth();
   const [rows, setRows] = useState<BookingDoc[]>([]);
+  const [available, setAvailable] = useState<boolean>(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    const ref = doc(db, "users", user.uid);
+    const unsub = onSnapshot(ref, (snap) => {
+      const data = snap.data() as any;
+      setAvailable(Boolean(data?.available));
+    });
+    return () => unsub();
+  }, [user?.uid]);
+
+  async function toggleAvailability() {
+    if (!user) return;
+    const ref = doc(db, "users", user.uid);
+    await updateDoc(ref, { available: !available });
+  }
 
   useEffect(() => {
     if (!user) return;
@@ -38,19 +60,42 @@ export function ProviderBookingsPage() {
     );
 
   async function confirm(id: string) {
-    await updateBookingStatus(id, "confirmed");
+    try {
+      setActionError(null);
+      await updateBookingStatus(id, "confirmed");
+    } catch (e: any) {
+      setActionError(e?.message ?? "Could not confirm request.");
+    }
   }
   async function decline(id: string) {
-    await updateBookingStatus(id, "declined");
+    try {
+      setActionError(null);
+      await updateBookingStatus(id, "declined");
+    } catch (e: any) {
+      setActionError(e?.message ?? "Could not decline request.");
+    }
   }
   async function complete(id: string) {
-    await updateBookingStatus(id, "completed");
+    try {
+      setActionError(null);
+      await updateBookingStatus(id, "completed");
+    } catch (e: any) {
+      setActionError(e?.message ?? "Could not complete request.");
+    }
   }
 
   return (
     <div className="card">
-      <h2>Incoming Bookings</h2>
+      <div className="row" style={{ justifyContent: "space-between", alignItems: "center" }}>
+        <h2>Incoming Bookings</h2>
+        <button className="btn btn--ghost" onClick={toggleAvailability}>
+          {available ? "Go Offline" : "Go Available"}
+        </button>
+      </div>
       <table className="table">
+        {actionError ? (
+          <p style={{ color: "var(--danger)", marginTop: 8 }}>{actionError}</p>
+        ) : null}
         <thead>
           <tr>
             <th>Customer</th>
@@ -76,6 +121,12 @@ export function ProviderBookingsPage() {
                   <StatusBadge s={b.status} />
                 </td>
                 <td className="actions">
+                  <Link
+                    className="btn btn--ghost"
+                    to={`/bookings/${b.id}/chat`}
+                  >
+                    Chat <UnreadPill bookingId={b.id!} uid={user.uid} />
+                  </Link>
                   {b.status === "pending" && (
                     <>
                       <button className="btn" onClick={() => confirm(b.id!)}>
@@ -110,3 +161,24 @@ export function ProviderBookingsPage() {
     </div>
   );
 }
+
+// <td className="actions">
+//   {b.status === "pending" && (
+//     <>
+//       <button className="btn" onClick={() => confirm(b.id!)}>
+//         Confirm
+//       </button>
+//       <button
+//         className="btn btn--ghost"
+//         onClick={() => decline(b.id!)}
+//       >
+//         Decline
+//       </button>
+//     </>
+//   )}
+//   {b.status === "confirmed" && (
+//     <button className="btn" onClick={() => complete(b.id!)}>
+//       Mark completed
+//     </button>
+//   )}
+// </td>

@@ -147,3 +147,77 @@ form .row {
   gap: 0.5rem;
   flex-wrap: wrap;
 }
+
+.chat {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  gap: 0.75rem;
+  height: 70vh;
+}
+.chat__feed {
+  overflow: auto;
+  padding-right: 0.25rem;
+}
+.msg {
+  display: inline-block;
+  max-width: 80%;
+  padding: 0.6rem 0.8rem;
+  border-radius: 1rem;
+  margin: 0.25rem 0;
+  line-height: 1.35;
+}
+.msg--me {
+  background: #1d2a3a;
+  margin-left: auto;
+}
+.msg--them {
+  background: #141a25;
+}
+.msg__meta {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-top: 0.25rem;
+}
+.msg__attachments {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-top: 0.4rem;
+}
+.msg__attachments img {
+  width: 160px;
+  height: 110px;
+  object-fit: cover;
+  border-radius: 0.6rem;
+  border: 1px solid #2a3446;
+}
+.chat__composer {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.5rem;
+  border-radius: 0.8rem;
+  border: 1px solid #334155;
+  background: #0f1420;
+}
+input[type="file"] {
+  color-scheme: dark;
+}
+.badge-dot {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.12rem 0.5rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  border: 1px solid #334155;
+}
+.badge-dot::before {
+  content: "";
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: #ef4444;
+}

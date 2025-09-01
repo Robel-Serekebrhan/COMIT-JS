@@ -23,7 +23,13 @@ type AuthCtx = {
   role: Role;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
+  register: (
+    name: string,
+    email: string,
+    password: string,
+    role: Role,
+    providerServices?: string[]
+  ) => Promise<void>;
   signOut: () => Promise<void>;
 };
 
@@ -87,7 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signIn: async (email, password) => {
         await signInWithEmailAndPassword(auth, email, password);
       },
-      register: async (name, email, password) => {
+      register: async (name, email, password, role, providerServices) => {
         const cred = await createUserWithEmailAndPassword(
           auth,
           email,
@@ -98,9 +104,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const ref = doc(db, "users", cred.user!.uid);
         const payload: UserDoc = {
           uid: cred.user!.uid,
-          role: "user",
+          role: role,
           displayName: name,
           email,
+          ...(role === "provider" && providerServices?.length
+            ? { providerServices }
+            : {}),
           createdAt: serverTimestamp() as any,
         };
         await setDoc(ref, payload, { merge: true });

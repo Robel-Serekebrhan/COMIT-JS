@@ -9,8 +9,11 @@ import { DashboardPage } from "./app/routes/DashboardPage.tsx";
 import { AuthProvider } from "./app/providers/AuthProvider.tsx";
 import { ProtectedRoute, RoleRoute } from "./app/providers/RouteGuards.tsx";
 import { CreateListingPage } from "./features/listings/CreateListingPage";
-import { UserBookingsPage } from "./features/bookings/UserBookingsPage";
 import { ProviderBookingsPage } from "./features/bookings/ProviderBookingsPage";
+import { MyBookingsChooser } from "./features/bookings/MyBookingsChooser";
+import { ProviderDashboard } from "./features/provider/ProviderDashboard";
+import { ChatPage } from "./features/messages/ChatPage";
+import { ProfilePage } from "./features/profile/ProfilePage";
 
 export default function App() {
   return (
@@ -23,10 +26,26 @@ export default function App() {
           <Route path="login" element={<LoginPage />} />
           <Route path="register" element={<RegisterPage />} />
           <Route
+            path="profile"
+            element={
+              <ProtectedRoute>
+                <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="bookings"
             element={
               <ProtectedRoute>
-                <UserBookingsPage />
+                <MyBookingsChooser />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="bookings/:bookingId/chat"
+            element={
+              <ProtectedRoute>
+                <ChatPage />
               </ProtectedRoute>
             }
           />
@@ -55,9 +74,7 @@ export default function App() {
             path="provider"
             element={
               <RoleRoute allow={["provider", "admin"]}>
-                <div className="container">
-                  <h2>Provider Console (stub)</h2>
-                </div>
+                <ProviderDashboard />
               </RoleRoute>
             }
           />
@@ -84,6 +101,18 @@ export default function App() {
     </AuthProvider>
   );
 }
+
+// imports (near others)
+
+// inside the <Routes> tree (under <Route element={<AppLayout/>}>):
+/* <Route
+  path="bookings/:bookingId/chat"
+  element={
+    <ProtectedRoute>
+      <ChatPage />
+    </ProtectedRoute>
+  }
+/> */
 
 // add imports near others
 

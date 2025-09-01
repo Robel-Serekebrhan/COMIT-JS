@@ -1,0 +1,32 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isSignedIn() { return request.auth != null; }
+    function uid() { return request.auth != null ? request.auth.uid : null; }
+    // Check against Firestore booking participants
+    function isBookingParticipant(bookingId) {
+      return isSignedIn() && (
+        get(/databases/(default)/documents/bookings/$(bookingId)).data.userUid == uid() ||
+        get(/databases/(default)/documents/bookings/$(bookingId)).data.providerUid == uid()
+      );
+    }
+
+    // Public listing photos: anyone can read; only owner can write/delete
+    match /services/{ownerUid}/{fileName=**} {
+      allow read: if true;
+      allow write, delete: if isSignedIn() && ownerUid == uid();
+    }
+
+    // Chat attachments: only booking participants can read; only sender can upload/delete
+    match /messages/{bookingId}/{senderUid}/{fileName=**} {
+      allow read: if isBookingParticipant(bookingId);
+      allow write, delete: if isBookingParticipant(bookingId) && senderUid == uid();
+    }
+
+    // Default deny
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}
+

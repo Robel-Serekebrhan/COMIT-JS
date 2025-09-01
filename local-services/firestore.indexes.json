@@ -56,6 +56,25 @@
       ]
     },
     {
+      "collectionGroup": "users",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "providerServices", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "role", "mode": "ASCENDING" },
+        { "fieldPath": "available", "mode": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "users",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "providerServices", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "role", "mode": "ASCENDING" },
+        { "fieldPath": "available", "mode": "ASCENDING" },
+        { "fieldPath": "city", "mode": "ASCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "services",
       "queryScope": "COLLECTION",
       "fields": [
@@ -70,6 +89,39 @@
         { "fieldPath": "city", "mode": "ASCENDING" },
         { "fieldPath": "category", "mode": "ASCENDING" },
         { "fieldPath": "createdAt", "mode": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "bookings",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "serviceId", "mode": "ASCENDING" },
+        { "fieldPath": "startTime", "mode": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "bookings",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "providerUid", "mode": "ASCENDING" },
+        { "fieldPath": "startTime", "mode": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "users",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "providerServices", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "role", "mode": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "users",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "providerServices", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "role", "mode": "ASCENDING" },
+        { "fieldPath": "city", "mode": "ASCENDING" }
       ]
     },
     {

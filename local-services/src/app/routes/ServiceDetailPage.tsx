@@ -8,6 +8,7 @@ import { useAuth } from "../providers/AuthProvider";
 import { BookingWidget } from "../../features/bookings/BookingWidget";
 
 export function ServiceDetailPage() {
+  useScrollToBooking();
   const { id = "" } = useParams();
   const { user } = useAuth();
 
@@ -78,7 +79,9 @@ export function ServiceDetailPage() {
       </div>
 
       {/* Right: booking widget */}
-      <BookingWidget service={svc as ServiceDoc & { id: string }} />
+      <div id="booking">
+        <BookingWidget service={svc as ServiceDoc & { id: string }} />
+      </div>
 
       {/* Reviews */}
       <div className="card">
@@ -133,6 +136,22 @@ export function ServiceDetailPage() {
       </div>
     </section>
   );
+}
+
+// Auto-scroll to booking widget when ?book=1 is present
+// Keep near bottom to avoid interfering with SSR or initial render timing
+import { useEffect as useEffect2 } from "react";
+import { useLocation } from "react-router-dom";
+function useScrollToBooking() {
+  const loc = useLocation();
+  useEffect2(() => {
+    const params = new URLSearchParams(loc.search);
+    if (params.get("book") === "1") {
+      setTimeout(() => {
+        document.getElementById("booking")?.scrollIntoView({ behavior: "smooth" });
+      }, 0);
+    }
+  }, [loc.search]);
 }
 
 // import type { FormEvent } from "react";

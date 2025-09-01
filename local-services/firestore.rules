@@ -10,6 +10,29 @@ match /bookings/{bookingId} {
       isAdmin()
   );
 
+  // Helper to check booking participants
+function isBookingParticipant(bookingId) {
+  return isSignedIn() && (
+    get(/databases/$(database)/documents/bookings/$(bookingId)).data.userUid == uid() ||
+    get(/databases/$(database)/documents/bookings/$(bookingId)).data.providerUid == uid() ||
+    isAdmin()
+  );
+}
+
+// Messages under a booking
+match /bookings/{bookingId}/messages/{messageId} {
+  allow read, create: if isBookingParticipant(bookingId);
+  // (Optional) allow delete own messages or admin
+  allow delete: if isBookingParticipant(bookingId) && (isAdmin() || request.auth.uid == resource.data.senderUid);
+  allow update: if false; // immutable messages
+}
+
+// Thread meta (lastReadAt, last message summary)
+match /bookings/{bookingId}/thread/{docId} {
+  allow read, write: if isBookingParticipant(bookingId);
+}
+
+
   // create: the caller must be the customer
   allow create: if isSignedIn() && request.resource.data.userUid == uid();
 
@@ -41,7 +64,8 @@ match /bookings/{bookingId} {
 
     // Users
     match /users/{userId} {
-      allow read: if isSignedIn() && (userId == uid() || isAdmin());
+      // Allow reading provider profiles for matching; users can read their own; admins read all
+      allow read: if isSignedIn() && (userId == uid() || isAdmin() || resource.data.role in ["provider", "admin"]);
       // user can update own profile (but NOT their role)
       allow update: if isSignedIn() && userId == uid() && !( "role" in request.resource.data.diff().changedKeys() );
       // only admin can set roles
@@ -62,6 +86,23 @@ match /bookings/{bookingId} {
       allow create: if isSignedIn();
       // (Optionally) allow users to edit only their own review
       allow update, delete: if isSignedIn() && resource.data.userUid == uid() || isAdmin();
+    }
+
+    // Bookings
+    match /bookings/{bookingId} {
+      // Users can read their own bookings; providers can read bookings addressed to them; admins all
+      allow read: if isSignedIn() && (resource.data.userUid == uid() || resource.data.providerUid == uid() || isAdmin());
+      // Create: only signed-in users for themselves
+      allow create: if isSignedIn() && request.resource.data.userUid == uid();
+      // Update status rules:
+      allow update: if isSignedIn() && (
+        // Customer may cancel their own booking
+        (request.resource.data.status == 'cancelled' && resource.data.userUid == uid()) ||
+        // Provider may change status on bookings sent to them
+        (resource.data.providerUid == uid()) ||
+        // Admin may update anything
+        isAdmin()
+      );
     }
   }
 }

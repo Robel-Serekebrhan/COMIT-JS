@@ -1,6 +1,9 @@
 import type { FormEvent } from "react";
 import { useState } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../../lib/firebase/firebase";
+import { getAuth } from "firebase/auth";
 import { useAuth } from "../../app/providers/AuthProvider";
 import { authErrorMessage } from "../../lib/firebase/errors";
 
@@ -19,7 +22,13 @@ export function LoginPage() {
     setError(null);
     try {
       await signIn(email, password);
-      nav(loc?.state?.from?.pathname ?? "/dashboard");
+      // Determine role and redirect accordingly (providers → requests by default)
+      const uid = getAuth().currentUser!.uid;
+      const snap = await getDoc(doc(db, "users", uid));
+      const role = snap.exists() ? (snap.data() as any).role : undefined;
+      const fallback = loc?.state?.from?.pathname;
+      if (role === "provider" || role === "admin") nav(fallback || "/provider/bookings");
+      else nav(fallback || "/dashboard");
     } catch (err: any) {
       const code: string | undefined = err?.code;
       setError(authErrorMessage(code, "Sign in failed"));

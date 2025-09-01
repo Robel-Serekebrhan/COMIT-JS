@@ -1,14 +1,17 @@
 // src/features/bookings/BookingWidget.tsx
 import type { FormEvent } from "react";
 import { useMemo, useState } from "react";
-import { createBookingRequest } from "./api";
+import { broadcastBookingRequest, createBookingRequest } from "./api";
+import { firestoreErrorMessage } from "../../lib/firebase/errors";
 import type { ServiceDoc } from "../../types/models";
 import { useAuth } from "../../app/providers/AuthProvider";
+import { Link, useLocation } from "react-router-dom";
 
 type Props = { service: ServiceDoc & { id: string } };
 
 export function BookingWidget({ service }: Props) {
   const { user } = useAuth();
+  const loc = useLocation();
 
   const [date, setDate] = useState<string>(""); // yyyy-mm-dd
   const [time, setTime] = useState<string>("09:00"); // HH:mm
@@ -17,6 +20,7 @@ export function BookingWidget({ service }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [ok, setOk] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [broadcast, setBroadcast] = useState(false);
 
   const total = useMemo(() => {
     const price = Number(service.pricePerHour ?? 0);
@@ -56,21 +60,44 @@ export function BookingWidget({ service }: Props) {
 
     setPending(true);
     try {
-      await createBookingRequest({
-        serviceId: service.id!,
-        serviceName: service.name,
-        providerUid: service.ownerUid,
-        userUid: user.uid,
-        userName: user.displayName ?? "Customer",
-        startTime: dt,
-        durationHours: duration,
-        priceQuote: total,
-        notes,
-      });
-      setOk("Booking requested! We’ll notify you once the provider responds.");
+      if (broadcast) {
+        await broadcastBookingRequest({
+          category: service.category,
+          city: service.city,
+          serviceId: service.id!,
+          serviceName: service.name,
+          userUid: user.uid,
+          userName: user.displayName ?? "Customer",
+          startTime: dt,
+          durationHours: duration,
+          priceQuote: total,
+          notes,
+        });
+        setOk(
+          "Request sent to available providers. You’ll be notified when one accepts."
+        );
+      } else {
+        await createBookingRequest({
+          serviceId: service.id!,
+          serviceName: service.name,
+          providerUid: service.ownerUid,
+          userUid: user.uid,
+          userName: user.displayName ?? "Customer",
+          startTime: dt,
+          durationHours: duration,
+          priceQuote: total,
+          notes,
+        });
+        setOk(
+          "Booking requested! We’ll notify you once the provider responds."
+        );
+      }
       setNotes("");
     } catch (err: any) {
-      setError(err?.message ?? "Could not create booking.");
+      const code: string | undefined = err?.code || err?.cause?.code;
+      setError(
+        firestoreErrorMessage(code, err?.message ?? "Could not create booking.")
+      );
     } finally {
       setPending(false);
     }
@@ -128,15 +155,26 @@ export function BookingWidget({ service }: Props) {
           />
         </div>
 
+        <label style={{ display: "flex", gap: ".5rem", alignItems: "center" }}>
+          <input
+            type="checkbox"
+            checked={broadcast}
+            onChange={(e) => setBroadcast(e.target.checked)}
+          />
+          Request from any available provider for this category
+        </label>
+
         {error ? <p style={{ color: "var(--danger)" }}>{error}</p> : null}
         {ok ? <p style={{ color: "var(--ok)" }}>{ok}</p> : null}
-        <button className="btn" disabled={pending || !user}>
-          {user
-            ? pending
-              ? "Requesting…"
-              : "Request booking"
-            : "Log in to book"}
-        </button>
+        {user ? (
+          <button className="btn" disabled={pending}>
+            {pending ? "Requesting…" : "Request booking"}
+          </button>
+        ) : (
+          <Link className="btn" to="/login" state={{ from: loc.pathname + loc.search }}>
+            Log in to book
+          </Link>
+        )}
       </form>
     </div>
   );
